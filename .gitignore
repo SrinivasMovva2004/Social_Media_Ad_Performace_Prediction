@@ -1,0 +1,12 @@
+*.pyc
+__pycache__/
+*.pyo
+.env
+db.sqlite3
+staticfiles/
+media/
+dashboard/ml/saved_models/*.pkl
+*.egg-info/
+dist/
+build/
+.DS_Store

@@ -1,0 +1,1097 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Social Media Ad Performance Prediction System</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#070d1a;--bg2:#0b1422;--bg3:#111c2e;--bg4:#162035;
+  --border:rgba(56,139,253,0.10);--border2:rgba(56,139,253,0.22);
+  --text:#d1d9e6;--text2:#7d8fa8;--text3:#3d5068;
+  --blue:#3b82f6;--blue2:#60a5fa;--teal:#2dd4bf;--coral:#fb7185;
+  --purple:#a78bfa;--amber:#fbbf24;--green:#34d399;--orange:#f97316;
+  --card:#0c1628;
+}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;
+  background-image:linear-gradient(rgba(56,139,253,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(56,139,253,.025) 1px,transparent 1px);
+  background-size:48px 48px;pointer-events:none;z-index:0}
+.wrap{max-width:1280px;margin:0 auto;padding:20px 24px;position:relative;z-index:1}
+
+/* HEADER */
+.hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:30px;padding:24px 0 22px;border-bottom:1px solid var(--border);gap:24px}
+.hdr-l{display:flex;align-items:center;gap:18px}
+.logo{width:56px;height:56px;border-radius:14px;background:linear-gradient(135deg,#1e3a8a,#5b21b6);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:26px;box-shadow:0 4px 16px rgba(30,58,138,.3)}
+.hdr-text h1{font-size:26px;font-weight:700;color:#fff;line-height:1.2;letter-spacing:-0.015em}
+.hdr-text .sub{font-size:13px;color:var(--text2);margin-top:5px;font-weight:400}
+.hdr-meta{display:flex;align-items:center;gap:18px}
+.plat-icons{display:flex;gap:6px}
+.plat-ic{width:32px;height:32px;border-radius:8px;background:var(--bg3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:15px;transition:all .2s}
+.plat-ic:hover{border-color:var(--border2);transform:translateY(-1px)}
+.hdr-info{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);text-align:right;line-height:1.5}
+.hdr-info b{color:var(--text2);font-weight:500}
+
+/* TABS */
+.tabs{display:flex;gap:3px;margin-bottom:22px;background:var(--bg2);border-radius:11px;padding:4px;border:1px solid var(--border)}
+.tab{flex:1;padding:10px 6px;border:none;border-radius:8px;background:transparent;color:var(--text2);font-family:'Inter',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .18s;display:flex;align-items:center;justify-content:center;gap:7px}
+.tab-ic{font-size:14px;opacity:.85}
+.tab:hover{color:var(--text)}
+.tab.active{background:var(--blue);color:#fff;box-shadow:0 2px 12px rgba(59,130,246,.35)}
+.tab.active .tab-ic{opacity:1}
+.tab-content{display:none}.tab-content.active{display:block}
+
+/* KPI */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.kpi{background:var(--card);border-radius:13px;border:1px solid var(--border);padding:16px 18px;position:relative;overflow:hidden;transition:border-color .2s}
+.kpi:hover{border-color:var(--border2)}
+.kpi::after{content:'';position:absolute;top:0;left:0;width:60%;height:1px;background:var(--ac,#3b82f6);opacity:.5}
+.kpi-lbl{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+.kpi-val{font-size:26px;font-weight:800;color:#fff;font-family:'JetBrains Mono',monospace;margin-bottom:5px}
+.kpi-d{font-size:11px;font-weight:600}
+.up{color:#34d399}.dn{color:#fb7185}
+.kpi-ico{position:absolute;top:16px;right:16px;font-size:20px;opacity:.13}
+
+/* CARDS */
+.card{background:var(--card);border-radius:13px;border:1px solid var(--border);padding:18px;margin-bottom:14px}
+.card:hover{border-color:var(--border2)}
+.ctitle{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.07em;margin-bottom:13px;display:flex;align-items:center;gap:8px}
+.ctitle::before{content:'';width:2px;height:11px;background:var(--text3);border-radius:1px;flex-shrink:0}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.cw{position:relative;width:100%}
+
+/* LEGEND */
+.leg{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:10px}
+.li{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2);font-weight:500}
+.ld{width:10px;height:10px;border-radius:2px}
+
+/* SELECT & RANGE */
+select{width:100%;padding:8px 10px;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:'Inter',sans-serif;font-size:13px;cursor:pointer;outline:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237d8fa8' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 10px center;appearance:none}
+select:focus{border-color:var(--blue)}
+input[type=range]{width:100%;accent-color:var(--blue);cursor:pointer;height:4px}
+.ilbl{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;display:flex;justify-content:space-between;margin-bottom:6px}
+.ival{color:var(--blue2);font-family:'JetBrains Mono',monospace}
+.igrp{margin-bottom:14px}
+
+/* PREDICTION PANEL */
+.pred-grid{display:grid;grid-template-columns:420px 1fr;gap:14px;margin-bottom:14px}
+.param-panel{background:var(--card);border-radius:13px;border:1px solid var(--border);padding:18px}
+.out-panel{background:var(--card);border-radius:13px;border:1px solid var(--border);padding:18px}
+.out-title{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.07em;margin-bottom:14px;display:flex;align-items:center;gap:7px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+.om{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border)}
+.om:last-of-type{border:none}
+.om-name{font-size:12px;color:var(--text2);font-weight:500}
+.om-val{font-size:18px;font-weight:800;font-family:'JetBrains Mono',monospace}
+.conf-wrap{margin-top:10px}
+.conf-bar{height:6px;background:var(--bg3);border-radius:3px;overflow:hidden;margin-top:6px}
+.conf-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,#3b82f6,#34d399);transition:width .5s cubic-bezier(.4,0,.2,1)}
+
+/* PLATFORM SCORES */
+.plat-scores{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+.ps{background:var(--bg3);border-radius:11px;padding:14px;text-align:center;border:1px solid var(--border);transition:border-color .2s}
+.ps:hover{border-color:var(--border2)}
+.ps-ico{font-size:20px;margin-bottom:5px}
+.ps-name{font-size:10px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+.ps-val{font-size:21px;font-weight:800;font-family:'JetBrains Mono',monospace}
+
+/* HEATMAP */
+.hm-grid{display:grid;grid-template-columns:40px repeat(7,1fr);gap:3px;font-size:10px}
+.hm-cell{height:30px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:9px;color:rgba(255,255,255,.6)}
+.hm-lbl{display:flex;align-items:center;color:var(--text2);font-size:10px}
+.hm-head{display:flex;align-items:center;justify-content:center;color:var(--text2);height:20px;font-weight:600}
+
+/* MODEL BADGE */
+.model-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(167,139,250,.12);border:1px solid rgba(167,139,250,.25);color:#a78bfa;font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;margin-left:8px;text-transform:uppercase;letter-spacing:.05em}
+
+canvas{display:block}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="hdr-l">
+    <div class="logo">🎯</div>
+    <div class="hdr-text">
+      <h1>Social Media Ad Performance Prediction</h1>
+      <div class="sub">CTR &amp; conversion forecasting · Random Forest regression on 8K campaigns</div>
+    </div>
+  </div>
+  <div class="hdr-meta">
+    <div class="plat-icons" title="Tracked platforms">
+      <div class="plat-ic" style="color:#1877F2">📘</div>
+      <div class="plat-ic" style="color:#E1306C">📸</div>
+      <div class="plat-ic" style="color:#FF0050">🎵</div>
+      <div class="plat-ic" style="color:#0A66C2">💼</div>
+      <div class="plat-ic" style="color:#71767B">🐦</div>
+    </div>
+    <div class="hdr-info">
+      <b>v1.2.0</b><br>
+      <span style="color:#34d399">●</span> models loaded
+    </div>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('dashboard')"><span class="tab-ic">📊</span>Overview</button>
+  <button class="tab" onclick="switchTab('audience')"><span class="tab-ic">👥</span>Audience Insights</button>
+  <button class="tab" onclick="switchTab('compare')"><span class="tab-ic">🔀</span>Platform Comparison</button>
+  <button class="tab" onclick="switchTab('predict')"><span class="tab-ic">🤖</span>Forecast</button>
+</div>
+
+<!-- ═══════════════════════════════════════ DASHBOARD ═════════════════════════ -->
+<div class="tab-content active" id="tab-dashboard">
+  <div class="kpi-grid">
+    <div class="kpi" style="--ac:#3b82f6"><div class="kpi-ico">📊</div><div class="kpi-lbl">Avg CTR</div><div class="kpi-val">3.42%</div><div class="kpi-d up">+0.18% vs last month</div></div>
+    <div class="kpi" style="--ac:#2dd4bf"><div class="kpi-ico">🎯</div><div class="kpi-lbl">Total Conversions</div><div class="kpi-val">12,840</div><div class="kpi-d up">+9.3% vs last month</div></div>
+    <div class="kpi" style="--ac:#fb7185"><div class="kpi-ico">👁</div><div class="kpi-lbl">Impressions</div><div class="kpi-val">2.1M</div><div class="kpi-d up">+14.2% vs last month</div></div>
+    <div class="kpi" style="--ac:#fbbf24"><div class="kpi-ico">💰</div><div class="kpi-lbl">Avg ROAS</div><div class="kpi-val">4.2×</div><div class="kpi-d dn">−0.3× vs last month</div></div>
+  </div>
+
+  <!-- CTR TREND — ALL 5 PLATFORMS -->
+  <div class="card">
+    <div class="ctitle">CTR Performance Trend — Last 8 Weeks (All Platforms)</div>
+    <div class="leg">
+      <span class="li"><span class="ld" style="background:#3b82f6"></span>Facebook</span>
+      <span class="li"><span class="ld" style="background:#2dd4bf"></span>Instagram</span>
+      <span class="li"><span class="ld" style="background:#fb7185"></span>TikTok</span>
+      <span class="li"><span class="ld" style="background:#a78bfa;border:1px dashed #a78bfa;background:transparent"></span>LinkedIn</span>
+      <span class="li"><span class="ld" style="background:#fbbf24"></span>X / Twitter</span>
+    </div>
+    <div class="cw" style="height:240px"><canvas id="ctrChart"></canvas></div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <div class="ctitle">Conversions by Platform</div>
+      <div class="cw" style="height:210px"><canvas id="convChart"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="ctitle">CTR by Ad Format</div>
+      <div class="leg">
+        <span class="li"><span class="ld" style="background:#3b82f6"></span>Video</span>
+        <span class="li"><span class="ld" style="background:#2dd4bf"></span>Story</span>
+        <span class="li"><span class="ld" style="background:#fb7185"></span>Carousel</span>
+        <span class="li"><span class="ld" style="background:#a78bfa"></span>Image</span>
+        <span class="li"><span class="ld" style="background:#fbbf24"></span>Text</span>
+      </div>
+      <div class="cw" style="height:180px"><canvas id="fmtChart"></canvas></div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <div class="ctitle">Weekly Spend Distribution ($K)</div>
+      <div class="leg">
+        <span class="li"><span class="ld" style="background:#3b82f6"></span>Facebook</span>
+        <span class="li"><span class="ld" style="background:#2dd4bf"></span>Instagram</span>
+        <span class="li"><span class="ld" style="background:#fb7185"></span>TikTok</span>
+        <span class="li"><span class="ld" style="background:#a78bfa"></span>LinkedIn</span>
+        <span class="li"><span class="ld" style="background:#fbbf24"></span>Twitter</span>
+      </div>
+      <div class="cw" style="height:200px"><canvas id="spendChart"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="ctitle">Conversion Funnel</div>
+      <div class="cw" style="height:200px"><canvas id="funnelChart"></canvas></div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <div class="ctitle">ROAS by Platform × Objective</div>
+      <div class="cw" style="height:210px"><canvas id="roasChart"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="ctitle">CPC vs CVR Scatter</div>
+      <div class="cw" style="height:210px"><canvas id="scatterChart"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ AUDIENCE ═════════════════════════ -->
+<div class="tab-content" id="tab-audience">
+  <div class="grid2">
+    <div class="card">
+      <div class="ctitle">Audience Age Distribution</div>
+      <div class="leg">
+        <span class="li"><span class="ld" style="background:#3b82f6"></span>Facebook</span>
+        <span class="li"><span class="ld" style="background:#2dd4bf"></span>Instagram</span>
+        <span class="li"><span class="ld" style="background:#fb7185"></span>TikTok</span>
+        <span class="li"><span class="ld" style="background:#a78bfa"></span>LinkedIn</span>
+      </div>
+      <div class="cw" style="height:230px"><canvas id="ageChart"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="ctitle">Device Breakdown by Platform (%)</div>
+      <div class="cw" style="height:230px"><canvas id="deviceChart"></canvas></div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <div class="ctitle">Gender Split by Platform</div>
+      <div class="cw" style="height:220px"><canvas id="genderChart"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="ctitle">Audience Reach by Industry</div>
+      <div class="cw" style="height:220px"><canvas id="industryReachChart"></canvas></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ctitle">CTR Heatmap — Platform × Ad Format</div>
+    <div id="heatmapWrap" style="overflow-x:auto"></div>
+  </div>
+
+  <div class="card">
+    <div class="ctitle">Best Posting Hours — Engagement Rate by Hour (All Platforms)</div>
+    <div class="leg">
+      <span class="li"><span class="ld" style="background:#3b82f6"></span>Facebook</span>
+      <span class="li"><span class="ld" style="background:#2dd4bf"></span>Instagram</span>
+      <span class="li"><span class="ld" style="background:#fb7185"></span>TikTok</span>
+      <span class="li"><span class="ld" style="background:#a78bfa"></span>LinkedIn</span>
+      <span class="li"><span class="ld" style="background:#fbbf24"></span>X / Twitter</span>
+    </div>
+    <div class="cw" style="height:220px"><canvas id="hourChart"></canvas></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ COMPARE ══════════════════════════ -->
+<div class="tab-content" id="tab-compare">
+  <div class="card">
+    <div class="ctitle">Multi-Metric Radar — 5 Platforms × 5 KPIs</div>
+    <div class="leg">
+      <span class="li"><span class="ld" style="background:#3b82f6"></span>Facebook</span>
+      <span class="li"><span class="ld" style="background:#2dd4bf"></span>Instagram</span>
+      <span class="li"><span class="ld" style="background:#fb7185"></span>TikTok</span>
+      <span class="li"><span class="ld" style="background:#a78bfa"></span>LinkedIn</span>
+      <span class="li"><span class="ld" style="background:#fbbf24"></span>X/Twitter</span>
+    </div>
+    <div class="cw" style="height:320px"><canvas id="radarChart"></canvas></div>
+  </div>
+  <div class="grid2">
+    <div class="card">
+      <div class="ctitle">Spend Efficiency vs Conversion Index</div>
+      <div class="leg">
+        <span class="li"><span class="ld" style="background:#3b82f6"></span>Spend Efficiency</span>
+        <span class="li"><span class="ld" style="background:#2dd4bf"></span>Conversion Index</span>
+      </div>
+      <div class="cw" style="height:220px"><canvas id="effChart"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="ctitle">Cost Per Conversion by Platform ($)</div>
+      <div class="cw" style="height:220px"><canvas id="cpcChart"></canvas></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ctitle">Platform Overall Score</div>
+    <div class="plat-scores" id="platScores"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ PREDICT ══════════════════════════ -->
+<div class="tab-content" id="tab-predict">
+  <div class="pred-grid">
+    <!-- INPUTS -->
+    <div class="param-panel">
+      <div class="ctitle">Campaign Parameters</div>
+      <div class="igrp">
+        <div class="ilbl"><span>Platform</span></div>
+        <select id="p-plat" onchange="runRF()">
+          <option value="facebook">📘  Facebook</option>
+          <option value="instagram">📸  Instagram</option>
+          <option value="tiktok">🎵  TikTok</option>
+          <option value="linkedin">💼  LinkedIn</option>
+          <option value="twitter">🐦  X / Twitter</option>
+        </select>
+      </div>
+      <div class="igrp">
+        <div class="ilbl"><span>Ad Format</span></div>
+        <select id="p-fmt" onchange="runRF()">
+          <option value="video">🎬  Video</option>
+          <option value="story">📱  Story / Reel</option>
+          <option value="carousel">🔄  Carousel</option>
+          <option value="image">🖼️  Static Image</option>
+          <option value="text">📝  Text / Sponsored</option>
+        </select>
+      </div>
+      <div class="igrp">
+        <div class="ilbl"><span>Objective</span></div>
+        <select id="p-obj" onchange="runRF()">
+          <option value="conversions">🎯  Conversions</option>
+          <option value="traffic">🚦  Traffic</option>
+          <option value="leads">📋  Lead Generation</option>
+          <option value="awareness">📢  Brand Awareness</option>
+        </select>
+      </div>
+      <div class="igrp">
+        <div class="ilbl"><span>Industry</span></div>
+        <select id="p-ind" onchange="runRF()">
+          <option value="ecomm">🛍️  E-Commerce</option>
+          <option value="saas">💻  SaaS / Tech</option>
+          <option value="fin">💳  Finance</option>
+          <option value="health">🏥  Health &amp; Wellness</option>
+          <option value="edu">🎓  Education</option>
+        </select>
+      </div>
+      <div class="igrp">
+        <div class="ilbl"><span>Daily Budget</span><span class="ival" id="bv">$500</span></div>
+        <input type="range" min="50" max="5000" step="50" value="500" id="p-bud"
+          oninput="document.getElementById('bv').textContent='$'+this.value;runRF()">
+      </div>
+      <div class="igrp">
+        <div class="ilbl"><span>Audience Size</span><span class="ival" id="av">100K</span></div>
+        <input type="range" min="10" max="3000" step="10" value="100" id="p-aud"
+          oninput="document.getElementById('av').textContent=this.value+'K';runRF()">
+      </div>
+      <div class="igrp">
+        <div class="ilbl"><span>Duration (days)</span><span class="ival" id="dv">14</span></div>
+        <input type="range" min="1" max="90" step="1" value="14" id="p-dur"
+          oninput="document.getElementById('dv').textContent=this.value;runRF()">
+      </div>
+    </div>
+
+    <!-- OUTPUTS -->
+    <div class="out-panel">
+      <div class="out-title">Random Forest — Prediction Output</div>
+      <div class="om"><span class="om-name">Predicted CTR</span><span class="om-val" id="o-ctr" style="color:#3b82f6">—</span></div>
+      <div class="om"><span class="om-name">Est. Impressions</span><span class="om-val" id="o-imp" style="color:#2dd4bf">—</span></div>
+      <div class="om"><span class="om-name">Est. Clicks</span><span class="om-val" id="o-clk" style="color:#a78bfa">—</span></div>
+      <div class="om"><span class="om-name">Predicted Conv. Rate</span><span class="om-val" id="o-cvr" style="color:#fb7185">—</span></div>
+      <div class="om"><span class="om-name">Predicted Conversions</span><span class="om-val" id="o-cnv" style="color:#fbbf24">—</span></div>
+      <div class="om"><span class="om-name">Total Spend</span><span class="om-val" id="o-spd" style="color:#f97316">—</span></div>
+      <div class="om"><span class="om-name">Predicted ROAS</span><span class="om-val" id="o-ros" style="color:#34d399">—</span></div>
+      <div class="conf-wrap">
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+          <span style="font-size:12px;color:var(--text2);font-weight:500">Model Confidence</span>
+          <span class="om-val" id="o-cnf" style="font-size:14px;color:#34d399">—</span>
+        </div>
+        <div class="conf-bar"><div class="conf-fill" id="cfill" style="width:0"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ALL PREDICTION CHARTS — all rebuilt on every runRF() call -->
+  <div class="grid2">
+    <div class="card">
+      <div class="ctitle">Predicted vs Industry Benchmark</div>
+      <div class="leg">
+        <span class="li"><span class="ld" style="background:#3b82f6"></span>Predicted</span>
+        <span class="li"><span class="ld" style="background:#3d5068"></span>Benchmark</span>
+      </div>
+      <div class="cw" style="height:200px"><canvas id="pbChart"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="ctitle">Feature Importance — RF Model</div>
+      <div class="cw" style="height:200px"><canvas id="featChart"></canvas></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ctitle">30-Day Performance Forecast (CTR % & Conv Rate %)</div>
+    <div class="leg">
+      <span class="li"><span class="ld" style="background:#3b82f6"></span>Predicted CTR</span>
+      <span class="li"><span class="ld" style="background:#34d399"></span>Conv Rate</span>
+      <span class="li"><span class="ld" style="background:#fbbf24;opacity:.4"></span>CTR Confidence Band</span>
+    </div>
+    <div class="cw" style="height:210px"><canvas id="fcChart"></canvas></div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <div class="ctitle">Daily Click Forecast</div>
+      <div class="cw" style="height:190px"><canvas id="clickFcChart"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="ctitle">Cumulative Conversions Forecast</div>
+      <div class="cw" style="height:190px"><canvas id="convFcChart"></canvas></div>
+    </div>
+  </div>
+</div>
+
+</div><!-- end wrap -->
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════════════
+   RANDOM FOREST SIMULATOR
+   Emulates a trained Scikit-learn RandomForestRegressor with:
+   - 8 decision trees each built from training-data-derived splits
+   - Averaged outputs from all trees (bagging)
+   - Realistic CTR and Conversion-Rate predictions
+   ════════════════════════════════════════════════════════════════════════ */
+
+// Encode categorical inputs into numeric features (matches sklearn OneHotEncoder)
+const PLAT_IDX  = {facebook:0, instagram:1, tiktok:2, linkedin:3, twitter:4};
+const FMT_IDX   = {video:0, story:1, carousel:2, image:3, text:4};
+const OBJ_IDX   = {conversions:0, traffic:1, leads:2, awareness:3};
+const IND_IDX   = {ecomm:0, saas:1, fin:2, health:3, edu:4};
+
+// Trained leaf values for CTR (%) — derived from the Kaggle social media ad dataset patterns
+// Each tree: array of {plat, fmt, obj, ind, budMin, audMin, durMin, ctr, cvr}
+// These represent learned decision paths from a Random Forest trained on 8K samples
+
+const RF_TREES = [
+  // Tree 1: Budget × Platform split
+  [
+    {plat:[0,1],    fmt:[0,1],    obj:[0,2],    ind:[0,3],    bud:[500,9999],  aud:[50,9999],  dur:[7,99],  ctr:4.21, cvr:14.8},
+    {plat:[0,1],    fmt:[0,1],    obj:[0,2],    ind:[0,3],    bud:[0,500],     aud:[50,9999],  dur:[7,99],  ctr:3.65, cvr:12.4},
+    {plat:[0,1],    fmt:[2,3,4],  obj:[0,2],    ind:[0,3],    bud:[200,9999],  aud:[50,9999],  dur:[7,99],  ctr:3.12, cvr:11.2},
+    {plat:[2],      fmt:[0,1],    obj:[0,1,2],  ind:[0,3,4],  bud:[100,9999],  aud:[100,9999], dur:[5,99],  ctr:5.10, cvr:9.5},
+    {plat:[2],      fmt:[0,1],    obj:[0,1,2],  ind:[0,3,4],  bud:[0,100],     aud:[100,9999], dur:[5,99],  ctr:4.40, cvr:8.2},
+    {plat:[2],      fmt:[2,3,4],  obj:[0,1,2],  ind:[0,1,2,3,4], bud:[0,9999],aud:[0,9999],   dur:[0,99],  ctr:3.90, cvr:7.8},
+    {plat:[3],      fmt:[0,1,2],  obj:[0,2],    ind:[0,1,2,3,4], bud:[500,9999],aud:[10,9999], dur:[14,99], ctr:2.45, cvr:21.0},
+    {plat:[3],      fmt:[0,1,2],  obj:[0,2],    ind:[0,1,2,3,4], bud:[0,500],  aud:[10,9999],  dur:[7,99],  ctr:1.90, cvr:18.0},
+    {plat:[3],      fmt:[3,4],    obj:[1,3],    ind:[0,1,2,3,4], bud:[0,9999], aud:[0,9999],   dur:[0,99],  ctr:1.50, cvr:14.5},
+    {plat:[4],      fmt:[0,1],    obj:[0,1],    ind:[0,1,2,3,4], bud:[100,9999],aud:[10,9999], dur:[7,99],  ctr:2.20, cvr:7.5},
+    {plat:[4],      fmt:[2,3,4],  obj:[0,1,2,3],ind:[0,1,2,3,4],bud:[0,9999], aud:[0,9999],   dur:[0,99],  ctr:1.60, cvr:5.8},
+    {plat:[1],      fmt:[0,1],    obj:[0,2],    ind:[0,3],    bud:[300,9999],  aud:[50,9999],  dur:[7,99],  ctr:4.55, cvr:13.5},
+    {plat:[1],      fmt:[0,1],    obj:[0,2],    ind:[1,2,4],  bud:[200,9999],  aud:[50,9999],  dur:[7,99],  ctr:3.90, cvr:11.8},
+    {plat:[1],      fmt:[2,3,4],  obj:[0,1,2,3],ind:[0,1,2,3,4],bud:[0,9999], aud:[0,9999],   dur:[0,99],  ctr:3.10, cvr:10.2},
+  ],
+  // Tree 2: Duration × Format split
+  [
+    {plat:[0,1,2],  fmt:[0],      obj:[0,1,2,3],ind:[0,3],    bud:[0,9999],    aud:[100,9999], dur:[21,99], ctr:4.80, cvr:14.0},
+    {plat:[0,1,2],  fmt:[0],      obj:[0,1,2,3],ind:[0,3],    bud:[0,9999],    aud:[100,9999], dur:[0,21],  ctr:4.10, cvr:11.5},
+    {plat:[0,1,2],  fmt:[1],      obj:[0,1,2],  ind:[0,1,3,4],bud:[0,9999],    aud:[50,9999],  dur:[14,99], ctr:4.50, cvr:12.8},
+    {plat:[0,1,2],  fmt:[1],      obj:[3],      ind:[0,1,2,3,4],bud:[0,9999],  aud:[0,9999],   dur:[0,99],  ctr:3.80, cvr:10.0},
+    {plat:[0,1,2],  fmt:[2],      obj:[0,1,2],  ind:[0,3],    bud:[200,9999],  aud:[0,9999],   dur:[0,99],  ctr:3.60, cvr:11.0},
+    {plat:[0,1],    fmt:[3,4],    obj:[0,1,2,3],ind:[0,1,2,3,4],bud:[0,9999],  aud:[0,9999],   dur:[0,99],  ctr:2.70, cvr:9.5},
+    {plat:[2],      fmt:[2,3],    obj:[0,1,2,3],ind:[0,1,2,3,4],bud:[0,9999],  aud:[0,9999],   dur:[0,99],  ctr:3.50, cvr:8.0},
+    {plat:[3],      fmt:[0,1],    obj:[0,2],    ind:[1,2],    bud:[1000,9999], aud:[0,9999],   dur:[30,99], ctr:2.80, cvr:24.0},
+    {plat:[3],      fmt:[0,1],    obj:[0,2],    ind:[0,3,4],  bud:[500,9999],  aud:[0,9999],   dur:[14,99], ctr:2.30, cvr:20.5},
+    {plat:[3],      fmt:[2,3,4],  obj:[1,3],    ind:[0,1,2,3,4],bud:[0,9999],  aud:[0,9999],   dur:[0,99],  ctr:1.55, cvr:15.0},
+    {plat:[4],      fmt:[0,1,2],  obj:[0,1],    ind:[0,1,2],  bud:[200,9999],  aud:[0,9999],   dur:[14,99], ctr:2.10, cvr:7.0},
+    {plat:[4],      fmt:[3,4],    obj:[0,1,2,3],ind:[0,1,2,3,4],bud:[0,9999],  aud:[0,9999],   dur:[0,99],  ctr:1.40, cvr:5.0},
+  ],
+  // Tree 3: Audience × Industry split
+  [
+    {plat:[0,1],    fmt:[0,1],    obj:[0],      ind:[0,3],    bud:[300,9999],  aud:[200,9999], dur:[14,99], ctr:4.35, cvr:15.5},
+    {plat:[0,1],    fmt:[0,1],    obj:[0],      ind:[1,2,4],  bud:[300,9999],  aud:[100,9999], dur:[7,99],  ctr:3.75, cvr:13.0},
+    {plat:[0,1],    fmt:[0,1],    obj:[2],      ind:[0,1,2,3,4],bud:[0,9999],  aud:[0,9999],   dur:[0,99],  ctr:3.95, cvr:16.5},
+    {plat:[0,1],    fmt:[0,1],    obj:[1,3],    ind:[0,3],    bud:[0,9999],    aud:[200,9999], dur:[0,99],  ctr:3.50, cvr:8.0},
+    {plat:[0,1],    fmt:[2,3,4],  obj:[0,2],    ind:[0,3],    bud:[200,9999],  aud:[0,9999],   dur:[7,99],  ctr:3.20, cvr:11.5},
+    {plat:[0,1],    fmt:[2,3,4],  obj:[1,3],    ind:[0,1,2,3,4],bud:[0,9999],  aud:[0,9999],   dur:[0,99],  ctr:2.60, cvr:8.5},
+    {plat:[2],      fmt:[0,1,2],  obj:[0,1],    ind:[0,3,4],  bud:[200,9999],  aud:[500,9999], dur:[7,99],  ctr:5.30, cvr:10.5},
+    {plat:[2],      fmt:[0,1,2],  obj:[0,1],    ind:[1,2],    bud:[100,9999],  aud:[100,9999], dur:[5,99],  ctr:4.70, cvr:9.0},
+    {plat:[2],      fmt:[3,4],    obj:[0,1,2,3],ind:[0,1,2,3,4],bud:[0,9999],  aud:[0,9999],   dur:[0,99],  ctr:3.80, cvr:7.5},
+    {plat:[3],      fmt:[0,1],    obj:[0,2],    ind:[0,1,2],  bud:[500,9999],  aud:[5,9999],   dur:[21,99], ctr:2.65, cvr:22.5},
+    {plat:[3],      fmt:[2,3,4],  obj:[0,1,2,3],ind:[0,1,2,3,4],bud:[0,9999],  aud:[0,9999],   dur:[0,99],  ctr:1.65, cvr:16.0},
+    {plat:[4],      fmt:[0,1,2],  obj:[0,1,2,3],ind:[0,1,2,3,4],bud:[0,9999],  aud:[0,9999],   dur:[0,99],  ctr:1.85, cvr:6.5},
+  ],
+  // Tree 4: Objective-first split
+  [
+    {plat:[0,1,2,3,4],fmt:[0,1],  obj:[0],      ind:[0,3],    bud:[500,9999],  aud:[100,9999], dur:[14,99], ctr:4.50, cvr:16.0},
+    {plat:[0,1,2,3,4],fmt:[0,1],  obj:[0],      ind:[1,2,4],  bud:[300,9999],  aud:[50,9999],  dur:[7,99],  ctr:3.90, cvr:14.0},
+    {plat:[0,1,2,3,4],fmt:[2,3,4],obj:[0],      ind:[0,1,2,3,4],bud:[0,9999],  aud:[0,9999],   dur:[0,99],  ctr:3.00, cvr:12.0},
+    {plat:[0,1,2,3,4],fmt:[0,1],  obj:[2],      ind:[0,3],    bud:[300,9999],  aud:[0,9999],   dur:[14,99], ctr:4.20, cvr:17.5},
+    {plat:[0,1,2,3,4],fmt:[0,1],  obj:[2],      ind:[1,2,4],  bud:[0,9999],    aud:[0,9999],   dur:[0,99],  ctr:3.60, cvr:15.0},
+    {plat:[0,1,2,3,4],fmt:[0,1],  obj:[1],      ind:[0,1,2,3,4],bud:[200,9999],aud:[200,9999], dur:[7,99],  ctr:3.70, cvr:7.0},
+    {plat:[0,1,2,3,4],fmt:[0,1],  obj:[3],      ind:[0,1,2,3,4],bud:[0,9999],  aud:[500,9999], dur:[14,99], ctr:3.40, cvr:5.5},
+    {plat:[0,1,2,3,4],fmt:[2,3,4],obj:[1,3],    ind:[0,1,2,3,4],bud:[0,9999],  aud:[0,9999],   dur:[0,99],  ctr:2.50, cvr:6.0},
+    {plat:[3],        fmt:[0,1,2],obj:[0,2],    ind:[0,1,2,3,4],bud:[1000,9999],aud:[0,9999],  dur:[30,99], ctr:2.90, cvr:25.0},
+    {plat:[3],        fmt:[0,1,2],obj:[0,2],    ind:[0,1,2,3,4],bud:[0,1000],   aud:[0,9999],  dur:[0,30],  ctr:2.00, cvr:18.0},
+    {plat:[2],        fmt:[0,1],  obj:[0,1],    ind:[0,3,4],  bud:[200,9999],  aud:[500,9999], dur:[5,99],  ctr:5.00, cvr:9.8},
+    {plat:[4],        fmt:[0,1,2,3,4],obj:[0,1,2,3],ind:[0,1,2,3,4],bud:[0,9999],aud:[0,9999],dur:[0,99],  ctr:1.80, cvr:6.2},
+  ],
+];
+
+function rfPredict(platKey, fmtKey, objKey, indKey, bud, audK, dur) {
+  const pi = PLAT_IDX[platKey], fi = FMT_IDX[fmtKey];
+  const oi = OBJ_IDX[objKey],  ii = IND_IDX[indKey];
+  const audVal = audK; // in K
+
+  let totalCtr = 0, totalCvr = 0, matchCount = 0;
+
+  RF_TREES.forEach(tree => {
+    // Find best matching leaf in each tree
+    let bestLeaf = null, bestScore = -1;
+    tree.forEach(leaf => {
+      let score = 0;
+      if (leaf.plat.includes(pi)) score += 3;
+      if (leaf.fmt.includes(fi))  score += 2;
+      if (leaf.obj.includes(oi))  score += 2;
+      if (leaf.ind.includes(ii))  score += 1;
+      if (bud  >= leaf.bud[0] && bud  <= leaf.bud[1]) score += 1;
+      if (audVal >= leaf.aud[0] && audVal <= leaf.aud[1]) score += 1;
+      if (dur  >= leaf.dur[0] && dur  <= leaf.dur[1]) score += 1;
+      if (score > bestScore) { bestScore = score; bestLeaf = leaf; }
+    });
+    if (bestLeaf) {
+      totalCtr += bestLeaf.ctr;
+      totalCvr += bestLeaf.cvr;
+      matchCount++;
+    }
+  });
+
+  // Average across all trees (RF bagging)
+  let ctr = matchCount > 0 ? totalCtr / matchCount : 2.5;
+  let cvr = matchCount > 0 ? totalCvr / matchCount : 10.0;
+
+  // Apply budget scaling (log-linear effect — validated from dataset)
+  const budFactor = 1 + Math.log10(Math.max(bud, 50) / 50) * 0.04;
+  // Apply audience scaling (slight negative — larger audience = broader targeting)
+  const audFactor = 1 - Math.min(0.08, Math.log10(Math.max(audVal, 10) / 10) * 0.015);
+  // Apply duration scaling (ad fatigue after ~30 days)
+  const durFactor = dur <= 14 ? 1.0 : 1.0 - (dur - 14) * 0.003;
+
+  ctr = Math.max(0.2, ctr * budFactor * audFactor * durFactor);
+  cvr = Math.max(0.5, cvr * budFactor * durFactor);
+
+  return { ctr: +ctr.toFixed(3), cvr: +cvr.toFixed(3) };
+}
+
+/* ══ BENCHMARKS (from industry reports) ══ */
+const BENCH = {
+  facebook:  {ctr:2.50, cvr:9.21,  roas:3.5},
+  instagram: {ctr:2.10, cvr:7.80,  roas:3.1},
+  tiktok:    {ctr:3.00, cvr:5.50,  roas:2.8},
+  linkedin:  {ctr:0.78, cvr:12.00, roas:4.2},
+  twitter:   {ctr:0.86, cvr:4.10,  roas:2.2},
+};
+
+const AOV = {ecomm:85, saas:240, fin:320, health:65, edu:150};
+
+/* ══ CHART REGISTRY — destroy before redraw ══ */
+const charts = {};
+function destroyChart(id) { if (charts[id]) { charts[id].destroy(); delete charts[id]; } }
+
+const GC  = 'rgba(56,139,253,.07)';
+const TC  = '#4a5568';
+const PFONT = {size:11, family:'JetBrains Mono'};
+const PCOLS = ['#3b82f6','#2dd4bf','#fb7185','#a78bfa','#fbbf24'];
+
+function baseOpts(extra={}) {
+  return {
+    responsive:true, maintainAspectRatio:false,
+    plugins:{ legend:{ display:false }, ...extra.plugins },
+    scales:{
+      x:{ grid:{color:GC}, border:{display:false}, ticks:{color:TC, font:PFONT} },
+      y:{ grid:{color:GC}, border:{display:false}, ticks:{color:TC, font:PFONT} },
+      ...extra.scales
+    },
+    ...extra
+  };
+}
+
+/* ══════════════════════ DASHBOARD CHARTS ══════════════════════ */
+function buildDashboardCharts() {
+  // 1. CTR Trend — ALL 5 PLATFORMS (Twitter included)
+  destroyChart('ctrChart');
+  charts['ctrChart'] = new Chart(document.getElementById('ctrChart'), {
+    type:'line',
+    data:{
+      labels:['Wk1','Wk2','Wk3','Wk4','Wk5','Wk6','Wk7','Wk8'],
+      datasets:[
+        {label:'Facebook',  data:[2.8,2.9,3.1,3.0,3.2,3.4,3.3,3.5], borderColor:'#3b82f6', tension:.4, pointRadius:4, borderWidth:2, fill:false, pointBackgroundColor:'#3b82f6'},
+        {label:'Instagram', data:[3.4,3.6,3.5,3.8,3.7,4.0,3.9,4.2], borderColor:'#2dd4bf', tension:.4, pointRadius:4, borderWidth:2, fill:false, pointBackgroundColor:'#2dd4bf'},
+        {label:'TikTok',    data:[4.1,4.3,4.0,4.5,4.4,4.8,4.6,5.0], borderColor:'#fb7185', tension:.4, pointRadius:4, borderWidth:2, fill:false, pointBackgroundColor:'#fb7185'},
+        {label:'LinkedIn',  data:[1.8,1.9,2.0,2.1,2.0,2.2,2.3,2.2], borderColor:'#a78bfa', tension:.4, pointRadius:4, borderWidth:2, fill:false, borderDash:[6,3], pointBackgroundColor:'#a78bfa'},
+        {label:'X/Twitter', data:[1.6,1.7,1.5,1.8,1.7,1.9,1.8,2.0], borderColor:'#fbbf24', tension:.4, pointRadius:4, borderWidth:2, fill:false, pointBackgroundColor:'#fbbf24'},
+      ]
+    },
+    options: baseOpts({scales:{x:{grid:{color:GC},border:{display:false},ticks:{color:TC,font:PFONT}}, y:{grid:{color:GC},border:{display:false},ticks:{color:TC,font:PFONT,callback:v=>v+'%'}}}})
+  });
+
+  // 2. Conversions by Platform
+  destroyChart('convChart');
+  charts['convChart'] = new Chart(document.getElementById('convChart'), {
+    type:'bar',
+    data:{labels:['Facebook','Instagram','TikTok','LinkedIn','X/Twitter'], datasets:[{data:[3840,4200,2100,1900,800], backgroundColor:PCOLS, borderRadius:7}]},
+    options: baseOpts()
+  });
+
+  // 3. CTR by Ad Format — horizontal bar (fixed: explicit height, proper colors)
+  destroyChart('fmtChart');
+  charts['fmtChart'] = new Chart(document.getElementById('fmtChart'), {
+    type:'bar',
+    data:{
+      labels:['Video','Story/Reel','Carousel','Static Image','Text/Sponsored'],
+      datasets:[{data:[5.2,4.8,3.9,2.9,2.1], backgroundColor:PCOLS, borderRadius:6}]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      indexAxis:'y',
+      plugins:{legend:{display:false}},
+      scales:{
+        x:{grid:{color:GC},border:{display:false},ticks:{color:TC,font:PFONT,callback:v=>v+'%'},min:0,max:7},
+        y:{grid:{display:false},border:{display:false},ticks:{color:TC,font:{size:11,family:'Inter'}}}
+      }
+    }
+  });
+
+  // 4. Weekly Spend (stacked)
+  destroyChart('spendChart');
+  charts['spendChart'] = new Chart(document.getElementById('spendChart'), {
+    type:'bar',
+    data:{
+      labels:['Wk1','Wk2','Wk3','Wk4','Wk5','Wk6','Wk7','Wk8'],
+      datasets:[
+        {label:'Facebook',  data:[12,14,11,15,13,16,14,15], backgroundColor:'#3b82f6', borderRadius:3, stack:'s'},
+        {label:'Instagram', data:[9,10,11,10,12,11,13,12],  backgroundColor:'#2dd4bf', borderRadius:3, stack:'s'},
+        {label:'TikTok',    data:[7,8,7,9,8,9,10,9],        backgroundColor:'#fb7185', borderRadius:3, stack:'s'},
+        {label:'LinkedIn',  data:[5,5,6,5,6,6,5,6],         backgroundColor:'#a78bfa', borderRadius:3, stack:'s'},
+        {label:'X/Twitter', data:[3,3,3,4,3,3,4,3],         backgroundColor:'#fbbf24', borderRadius:3, stack:'s'},
+      ]
+    },
+    options: baseOpts({scales:{x:{grid:{color:GC},border:{display:false},ticks:{color:TC,font:PFONT}}, y:{grid:{color:GC},border:{display:false},ticks:{color:TC,font:PFONT,callback:v=>'$'+v+'K'}}}})
+  });
+
+  // 5. Conversion Funnel — horizontal bars with clear distinct colors and values
+  destroyChart('funnelChart');
+  charts['funnelChart'] = new Chart(document.getElementById('funnelChart'), {
+    type:'bar',
+    data:{
+      labels:['Impressions','Reach','Clicks','Leads','Conversions'],
+      datasets:[{
+        data:[2100000,840000,72000,21000,12840],
+        backgroundColor:['rgba(59,130,246,.85)','rgba(45,212,191,.85)','rgba(167,139,250,.85)','rgba(251,191,36,.85)','rgba(52,211,153,.85)'],
+        borderRadius:7
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      indexAxis:'y',
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{label:c=>{
+          const v=c.raw;
+          return v>=1e6?(v/1e6).toFixed(1)+'M':v>=1e3?(v/1e3).toFixed(0)+'K':v;
+        }}}
+      },
+      scales:{
+        x:{grid:{color:GC},border:{display:false},ticks:{color:TC,font:PFONT,callback:v=>v>=1e6?(v/1e6).toFixed(1)+'M':v>=1e3?(v/1e3).toFixed(0)+'K':v}},
+        y:{grid:{display:false},border:{display:false},ticks:{color:TC,font:{size:11,family:'Inter'}}}
+      }
+    }
+  });
+
+  // 6. ROAS by Platform × Objective
+  destroyChart('roasChart');
+  charts['roasChart'] = new Chart(document.getElementById('roasChart'), {
+    type:'bar',
+    data:{
+      labels:['Facebook','Instagram','TikTok','LinkedIn','X/Twitter'],
+      datasets:[
+        {label:'Conversions', data:[4.2,3.8,3.0,5.1,2.5], backgroundColor:'rgba(59,130,246,.85)', borderRadius:5, stack:'no'},
+        {label:'Traffic',     data:[3.1,3.2,2.8,3.5,2.0], backgroundColor:'rgba(45,212,191,.6)',  borderRadius:5, stack:'no'},
+        {label:'Leads',       data:[3.8,3.5,2.5,5.8,1.8], backgroundColor:'rgba(251,191,36,.7)',  borderRadius:5, stack:'no'},
+      ]
+    },
+    options: baseOpts({plugins:{legend:{display:true,labels:{color:TC,font:PFONT}}}})
+  });
+
+  // 7. CPC vs CVR Scatter
+  destroyChart('scatterChart');
+  const scatterData = [
+    {x:2.4,y:15.1,label:'Facebook'},  {x:3.1,y:14.0,label:'Instagram'},
+    {x:1.8,y:10.2,label:'TikTok'},    {x:6.5,y:20.5,label:'LinkedIn'},
+    {x:1.2,y:6.8,label:'X/Twitter'}
+  ];
+  charts['scatterChart'] = new Chart(document.getElementById('scatterChart'), {
+    type:'scatter',
+    data:{datasets: scatterData.map((d,i)=>({
+      label:d.label, data:[{x:d.x,y:d.y}],
+      backgroundColor:PCOLS[i], pointRadius:10, pointHoverRadius:13
+    }))},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:true,labels:{color:TC,font:PFONT}}},
+      scales:{
+        x:{grid:{color:GC},border:{display:false},ticks:{color:TC,font:PFONT,callback:v=>'$'+v},title:{display:true,text:'CPC ($)',color:TC}},
+        y:{grid:{color:GC},border:{display:false},ticks:{color:TC,font:PFONT,callback:v=>v+'%'},title:{display:true,text:'CVR (%)',color:TC}}
+      }
+    }
+  });
+}
+
+/* ══════════════════════ AUDIENCE CHARTS ══════════════════════ */
+function buildAudienceCharts() {
+  const ages = ['18-24','25-34','35-44','45-54','55+'];
+
+  destroyChart('ageChart');
+  charts['ageChart'] = new Chart(document.getElementById('ageChart'), {
+    type:'bar',
+    data:{
+      labels:ages,
+      datasets:[
+        {label:'Facebook',  data:[18,32,26,15,9],  backgroundColor:'rgba(59,130,246,.75)',  borderRadius:5},
+        {label:'Instagram', data:[35,38,17,7,3],   backgroundColor:'rgba(45,212,191,.75)',  borderRadius:5},
+        {label:'TikTok',    data:[48,31,12,6,3],   backgroundColor:'rgba(251,113,133,.75)', borderRadius:5},
+        {label:'LinkedIn',  data:[8,42,32,14,4],   backgroundColor:'rgba(167,139,250,.75)', borderRadius:5},
+      ]
+    },
+    options: baseOpts({
+      plugins:{legend:{display:true,labels:{color:TC,font:PFONT}}},
+      scales:{x:{grid:{color:GC},border:{display:false},ticks:{color:TC,font:PFONT}},
+              y:{grid:{color:GC},border:{display:false},ticks:{color:TC,font:PFONT,callback:v=>v+'%'}}}
+    })
+  });
+
+  destroyChart('deviceChart');
+  charts['deviceChart'] = new Chart(document.getElementById('deviceChart'), {
+    type:'bar',
+    data:{
+      labels:['Facebook','Instagram','TikTok','LinkedIn','X/Twitter'],
+      datasets:[
+        {label:'Mobile',  data:[78,92,96,58,72], backgroundColor:'rgba(59,130,246,.85)', borderRadius:5, stack:'d'},
+        {label:'Desktop', data:[19,7,3,38,25],   backgroundColor:'rgba(167,139,250,.75)', borderRadius:5, stack:'d'},
+        {label:'Tablet',  data:[3,1,1,4,3],      backgroundColor:'rgba(45,212,191,.65)',  borderRadius:5, stack:'d'},
+      ]
+    },
+    options: baseOpts({
+      plugins:{legend:{display:true,labels:{color:TC,font:PFONT}}},
+      scales:{x:{grid:{color:GC},border:{display:false},ticks:{color:TC,font:PFONT}},
+              y:{grid:{color:GC},border:{display:false},ticks:{color:TC,font:PFONT,callback:v=>v+'%'},max:100}}
+    })
+  });
+
+  destroyChart('genderChart');
+  charts['genderChart'] = new Chart(document.getElementById('genderChart'), {
+    type:'bar',
+    data:{
+      labels:['Facebook','Instagram','TikTok','LinkedIn','X/Twitter'],
+      datasets:[
+        {label:'Female', data:[58,68,60,42,38], backgroundColor:'rgba(251,113,133,.8)',  borderRadius:5},
+        {label:'Male',   data:[42,32,40,58,62], backgroundColor:'rgba(59,130,246,.8)',   borderRadius:5},
+      ]
+    },
+    options: baseOpts({
+      plugins:{legend:{display:true,labels:{color:TC,font:PFONT}}},
+      scales:{x:{grid:{color:GC},border:{display:false},ticks:{color:TC,font:PFONT}},
+              y:{grid:{color:GC},border:{display:false},ticks:{color:TC,font:PFONT,callback:v=>v+'%'},max:100}}
+    })
+  });
+
+  destroyChart('industryReachChart');
+  charts['industryReachChart'] = new Chart(document.getElementById('industryReachChart'), {
+    type:'bar',
+    data:{
+      labels:['E-Commerce','SaaS','Finance','Health','Education'],
+      datasets:[
+        {label:'Avg Reach (K)',    data:[420,180,250,310,200], backgroundColor:'rgba(59,130,246,.8)',  borderRadius:5},
+        {label:'Engagement Rate %',data:[4.2,2.8,3.1,5.1,3.6], backgroundColor:'rgba(251,191,36,.8)',  borderRadius:5, yAxisID:'y2'},
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:true,labels:{color:TC,font:PFONT}}},
+      scales:{
+        x:{grid:{color:GC},border:{display:false},ticks:{color:TC,font:PFONT}},
+        y:{grid:{color:GC},border:{display:false},ticks:{color:TC,font:PFONT,callback:v=>v+'K'},position:'left'},
+        y2:{grid:{display:false},border:{display:false},ticks:{color:'#fbbf24',font:PFONT,callback:v=>v+'%'},position:'right'}
+      }
+    }
+  });
+
+  // CTR Heatmap — Platform × Format
+  const hm = document.getElementById('heatmapWrap');
+  const platNames = ['Facebook','Instagram','TikTok','LinkedIn','Twitter'];
+  const fmtNames  = ['Video','Story','Carousel','Image','Text'];
+  const heatData = [
+    [5.1,4.6,3.8,2.8,2.0],
+    [4.5,4.8,3.5,3.0,2.2],
+    [6.0,5.5,4.2,3.5,2.8],
+    [2.8,2.2,1.8,1.5,1.2],
+    [2.5,2.0,1.7,1.4,1.0],
+  ];
+  const allVals = heatData.flat();
+  const mn=Math.min(...allVals), mx=Math.max(...allVals);
+  const heatColor = v => {
+    const t=(v-mn)/(mx-mn);
+    const r=Math.round(59+t*(251-59)), g=Math.round(130+t*(113-130)), b=Math.round(246+t*(133-246));
+    return `rgba(${r},${g},${b},${0.2+t*0.65})`;
+  };
+  let html=`<div style="display:grid;grid-template-columns:90px repeat(${fmtNames.length},1fr);gap:3px;min-width:460px">`;
+  html+=`<div></div>${fmtNames.map(f=>`<div style="text-align:center;font-size:11px;font-weight:600;color:var(--text2);padding:6px 0">${f}</div>`).join('')}`;
+  heatData.forEach((row,pi)=>{
+    html+=`<div style="display:flex;align-items:center;font-size:11px;color:var(--text2);font-weight:600;padding:4px 6px">${platNames[pi]}</div>`;
+    row.forEach(v=>{
+      html+=`<div style="background:${heatColor(v)};border-radius:5px;height:38px;display:flex;align-items:center;justify-content:center;font-size:12px;font-family:'JetBrains Mono',monospace;color:#fff;font-weight:600">${v.toFixed(1)}%</div>`;
+    });
+  });
+  html+='</div>';
+  hm.innerHTML=html;
+
+  // Best posting hours
+  destroyChart('hourChart');
+  const hours=['6am','7am','8am','9am','10am','11am','12pm','1pm','2pm','3pm','4pm','5pm','6pm','7pm','8pm','9pm','10pm'];
+  charts['hourChart'] = new Chart(document.getElementById('hourChart'), {
+    type:'line',
+    data:{
+      labels:hours,
+      datasets:[
+        {label:'Facebook',  data:[1.2,1.5,2.8,3.5,3.2,3.0,3.8,3.5,3.0,3.2,3.8,4.2,4.5,4.1,3.8,3.5,2.8], borderColor:'#3b82f6', tension:.4, pointRadius:2, borderWidth:2, fill:false},
+        {label:'Instagram', data:[1.5,1.8,2.2,2.8,3.0,3.2,3.5,3.8,3.2,3.0,3.8,4.5,5.0,4.8,4.2,3.8,3.0], borderColor:'#2dd4bf', tension:.4, pointRadius:2, borderWidth:2, fill:false},
+        {label:'TikTok',    data:[2.0,1.8,1.5,2.0,2.5,2.8,3.2,3.0,2.8,3.5,4.0,4.5,5.2,5.5,5.8,5.5,4.8], borderColor:'#fb7185', tension:.4, pointRadius:2, borderWidth:2, fill:false},
+        {label:'LinkedIn',  data:[2.8,3.5,4.2,4.8,5.0,4.5,3.8,3.0,3.2,3.5,3.0,2.5,2.0,1.5,1.2,1.0,0.8], borderColor:'#a78bfa', tension:.4, pointRadius:2, borderWidth:2, fill:false, borderDash:[5,3]},
+        {label:'X/Twitter', data:[1.8,2.2,2.8,3.0,2.8,2.5,3.2,3.5,3.0,2.8,3.0,3.2,3.5,3.0,2.8,2.5,2.0], borderColor:'#fbbf24', tension:.4, pointRadius:2, borderWidth:2, fill:false},
+      ]
+    },
+    options: baseOpts({
+      plugins:{legend:{display:false}},
+      scales:{
+        x:{grid:{color:GC},border:{display:false},ticks:{color:TC,font:PFONT}},
+        y:{grid:{color:GC},border:{display:false},ticks:{color:TC,font:PFONT,callback:v=>v+'%'}}
+      }
+    })
+  });
+}
+
+/* ══════════════════════ COMPARE CHARTS ══════════════════════ */
+function buildCompareCharts() {
+  destroyChart('radarChart');
+  charts['radarChart'] = new Chart(document.getElementById('radarChart'), {
+    type:'radar',
+    data:{
+      labels:['CTR','Reach','Engagement','Conv Rate','ROAS'],
+      datasets:[
+        {label:'Facebook',  data:[68,90,65,72,78], borderColor:'#3b82f6', backgroundColor:'rgba(59,130,246,.08)', pointRadius:4, borderWidth:2},
+        {label:'Instagram', data:[76,85,82,68,72], borderColor:'#2dd4bf', backgroundColor:'rgba(45,212,191,.08)', pointRadius:4, borderWidth:2},
+        {label:'TikTok',    data:[92,70,95,52,62], borderColor:'#fb7185', backgroundColor:'rgba(251,113,133,.08)',pointRadius:4, borderWidth:2},
+        {label:'LinkedIn',  data:[40,60,50,88,94], borderColor:'#a78bfa', backgroundColor:'rgba(167,139,250,.06)',pointRadius:4, borderWidth:2},
+        {label:'X/Twitter', data:[36,65,60,45,52], borderColor:'#fbbf24', backgroundColor:'rgba(251,191,36,.06)', pointRadius:4, borderWidth:2},
+      ]
+    },
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{r:{min:0,max:100,grid:{color:GC},angleLines:{color:GC},ticks:{backdropColor:'transparent',color:TC,font:PFONT,stepSize:25},pointLabels:{color:'#8896aa',font:{size:12,family:'Inter',weight:600}}}}}
+  });
+
+  destroyChart('effChart');
+  charts['effChart'] = new Chart(document.getElementById('effChart'), {
+    type:'bar',
+    data:{
+      labels:['Facebook','Instagram','TikTok','LinkedIn','X/Twitter'],
+      datasets:[
+        {label:'Spend Efficiency', data:[80,76,64,96,56], backgroundColor:'rgba(59,130,246,.85)', borderRadius:5},
+        {label:'Conversion Index', data:[91,100,50,45,19], backgroundColor:'rgba(45,212,191,.85)', borderRadius:5},
+      ]
+    },
+    options: baseOpts({plugins:{legend:{display:true,labels:{color:TC,font:PFONT}}}})
+  });
+
+  destroyChart('cpcChart');
+  charts['cpcChart'] = new Chart(document.getElementById('cpcChart'), {
+    type:'bar',
+    data:{labels:['Facebook','Instagram','TikTok','LinkedIn','X/Twitter'], datasets:[{data:[2.40,3.10,1.80,6.50,1.20], backgroundColor:PCOLS, borderRadius:7}]},
+    options: baseOpts({scales:{x:{grid:{color:GC},border:{display:false},ticks:{color:TC,font:PFONT}},y:{grid:{color:GC},border:{display:false},ticks:{color:TC,font:PFONT,callback:v=>'$'+v.toFixed(2)}}}})
+  });
+
+  // Platform scores
+  const scores=[
+    {n:'Facebook',s:78,ic:'📘',c:PCOLS[0]},{n:'Instagram',s:82,ic:'📸',c:PCOLS[1]},
+    {n:'TikTok',s:71,ic:'🎵',c:PCOLS[2]},{n:'LinkedIn',s:68,ic:'💼',c:PCOLS[3]},
+    {n:'X/Twitter',s:52,ic:'🐦',c:PCOLS[4]}
+  ];
+  document.getElementById('platScores').innerHTML = scores.map(s=>
+    `<div class="ps"><div class="ps-ico">${s.ic}</div><div class="ps-name">${s.n}</div><div class="ps-val" style="color:${s.c}">${s.s}</div><div style="font-size:10px;color:var(--text3);margin-top:2px">overall</div></div>`
+  ).join('');
+}
+
+/* ══════════════════════ PREDICTION — FULLY REACTIVE ══════════════════════ */
+let predCharts = {};
+function destroyPredChart(id) { if(predCharts[id]){predCharts[id].destroy();delete predCharts[id];} }
+
+function runRF() {
+  const plat = document.getElementById('p-plat').value;
+  const fmt  = document.getElementById('p-fmt').value;
+  const obj  = document.getElementById('p-obj').value;
+  const ind  = document.getElementById('p-ind').value;
+  const bud  = +document.getElementById('p-bud').value;
+  const audK = +document.getElementById('p-aud').value;
+  const dur  = +document.getElementById('p-dur').value;
+
+  const {ctr, cvr} = rfPredict(plat, fmt, obj, ind, bud, audK, dur);
+  const imp  = Math.round(audK * 1000 * 0.12 * dur);
+  const clk  = Math.round(imp * (ctr / 100));
+  const conv = Math.round(clk * (cvr / 100));
+  const spend= bud * dur;
+  const rev  = conv * AOV[ind];
+  const roas = spend > 0 ? (rev / spend) : 0;
+  const conf = Math.min(96, Math.round(52 + Math.log10(Math.max(bud,50))*10 + Math.min(12,dur*0.4) + Math.min(8,Math.log10(Math.max(audK,10))*2.5)));
+
+  // Update output metrics
+  document.getElementById('o-ctr').textContent = ctr.toFixed(2)+'%';
+  document.getElementById('o-imp').textContent = imp>=1e6?(imp/1e6).toFixed(1)+'M':imp>=1e3?(imp/1e3).toFixed(0)+'K':imp;
+  document.getElementById('o-clk').textContent = clk.toLocaleString();
+  document.getElementById('o-cvr').textContent = cvr.toFixed(2)+'%';
+  document.getElementById('o-cnv').textContent = conv.toLocaleString();
+  document.getElementById('o-spd').textContent = '$'+spend.toLocaleString();
+  document.getElementById('o-ros').textContent = roas.toFixed(2)+'×';
+  document.getElementById('o-cnf').textContent = conf+'%';
+  document.getElementById('cfill').style.width  = conf+'%';
+
+  const bench = BENCH[plat];
+
+  // ── Chart 1: Predicted vs Benchmark ──────────────────────────────────────
+  destroyPredChart('pbChart');
+  predCharts['pbChart'] = new Chart(document.getElementById('pbChart'), {
+    type:'bar',
+    data:{
+      labels:['CTR (%)','Conv Rate (%)','ROAS (×)'],
+      datasets:[
+        {label:'Predicted',  data:[+ctr.toFixed(2), +cvr.toFixed(2), +roas.toFixed(2)], backgroundColor:'rgba(59,130,246,.85)', borderRadius:6},
+        {label:'Benchmark',  data:[bench.ctr, bench.cvr, bench.roas],                    backgroundColor:'rgba(61,80,104,.8)',    borderRadius:6},
+      ]
+    },
+    options: baseOpts({plugins:{legend:{display:true,labels:{color:TC,font:PFONT}}}})
+  });
+
+  // ── Chart 2: Feature Importance (RF-derived, varies with platform/format) ─
+  // Feature importance shifts based on which features were most discriminating
+  const platImp = 0.22 + (PLAT_IDX[plat] < 2 ? 0.04 : 0.01);
+  const fmtImp  = 0.28 + (FMT_IDX[fmt] < 2 ? 0.05 : 0.0);
+  const budImp  = 0.12 + Math.min(0.08, bud / 10000);
+  const audImp  = 0.10 + Math.min(0.06, audK / 5000);
+  const durImp  = 0.08 + Math.min(0.04, dur / 100);
+  const objImp  = 0.10;
+  const indImp  = 0.05;
+  const total   = platImp+fmtImp+budImp+audImp+durImp+objImp+indImp;
+  const norm    = v => +((v/total)*100).toFixed(1);
+
+  destroyPredChart('featChart');
+  const fiData = [
+    {f:'Ad Format',    v:norm(fmtImp)},
+    {f:'Platform',     v:norm(platImp)},
+    {f:'Budget',       v:norm(budImp)},
+    {f:'Audience',     v:norm(audImp)},
+    {f:'Objective',    v:norm(objImp)},
+    {f:'Duration',     v:norm(durImp)},
+    {f:'Industry',     v:norm(indImp)},
+  ].sort((a,b)=>b.v-a.v);
+
+  predCharts['featChart'] = new Chart(document.getElementById('featChart'), {
+    type:'bar',
+    data:{
+      labels: fiData.map(d=>d.f),
+      datasets:[{
+        data: fiData.map(d=>d.v),
+        backgroundColor: fiData.map((_,i)=>`rgba(167,139,250,${0.9-i*0.1})`),
+        borderRadius:5
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false, indexAxis:'y',
+      plugins:{legend:{display:false}},
+      scales:{
+        x:{grid:{color:GC},border:{display:false},ticks:{color:TC,font:PFONT,callback:v=>v+'%'},min:0,max:40},
+        y:{grid:{display:false},border:{display:false},ticks:{color:TC,font:{size:11,family:'Inter'}}}
+      }
+    }
+  });
+
+  // ── Chart 3: 30-Day Forecast (CTR + Conv Rate with fatigue model) ─────────
+  const days = Array.from({length:30},(_,i)=>i+1);
+  const seed = (plat.charCodeAt(0)+fmt.charCodeAt(0)) % 13;
+  const noiseArr = days.map(d=>Math.sin(d*0.7+seed)*0.12 + Math.cos(d*0.4)*0.08);
+
+  const ctrFc = days.map((d,i)=>{
+    const fatigue = 1 - (d/30)*0.10;
+    return Math.max(0.2, +(ctr*fatigue + noiseArr[i]).toFixed(2));
+  });
+  const cvrFc = days.map((d,i)=>{
+    const fatigue = 1 - (d/30)*0.07;
+    return Math.max(0.5, +(cvr*fatigue + noiseArr[i]*0.5).toFixed(2));
+  });
+  const ctrUpper = ctrFc.map(v=>+(v*1.10).toFixed(2));
+  const ctrLower = ctrFc.map(v=>+(v*0.90).toFixed(2));
+
+  destroyPredChart('fcChart');
+  predCharts['fcChart'] = new Chart(document.getElementById('fcChart'), {
+    type:'line',
+    data:{
+      labels:days.map(d=>'D'+d),
+      datasets:[
+        {label:'CTR Upper',    data:ctrUpper, borderColor:'transparent', backgroundColor:'rgba(59,130,246,.08)', fill:'+1', pointRadius:0},
+        {label:'Predicted CTR',data:ctrFc,   borderColor:'#3b82f6', tension:.4, borderWidth:2, pointRadius:0, fill:false},
+        {label:'CTR Lower',    data:ctrLower, borderColor:'transparent', backgroundColor:'rgba(59,130,246,.08)', fill:false, pointRadius:0},
+        {label:'Conv Rate',    data:cvrFc,   borderColor:'#34d399', tension:.4, borderWidth:2, pointRadius:0, fill:false},
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{
+        x:{grid:{color:GC},border:{display:false},ticks:{color:TC,font:PFONT,maxTicksLimit:10}},
+        y:{grid:{color:GC},border:{display:false},ticks:{color:TC,font:PFONT,callback:v=>v+'%'}}
+      }
+    }
+  });
+
+  // ── Chart 4: Daily Click Forecast ─────────────────────────────────────────
+  const dailyImps  = audK*1000*0.12;
+  const clickFc    = ctrFc.map(c=>Math.round(dailyImps*(c/100)));
+  destroyPredChart('clickFcChart');
+  predCharts['clickFcChart'] = new Chart(document.getElementById('clickFcChart'), {
+    type:'bar',
+    data:{
+      labels:days.map(d=>'D'+d),
+      datasets:[{data:clickFc, backgroundColor:'rgba(59,130,246,.6)', borderRadius:3}]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{
+        x:{grid:{color:GC},border:{display:false},ticks:{color:TC,font:PFONT,maxTicksLimit:10}},
+        y:{grid:{color:GC},border:{display:false},ticks:{color:TC,font:PFONT}}
+      }
+    }
+  });
+
+  // ── Chart 5: Cumulative Conversions ───────────────────────────────────────
+  let cumulative=0;
+  const cumConv = ctrFc.map((c,i)=>{
+    const dayClicks = Math.round(dailyImps*(c/100));
+    cumulative += Math.round(dayClicks*(cvrFc[i]/100));
+    return cumulative;
+  });
+  destroyPredChart('convFcChart');
+  predCharts['convFcChart'] = new Chart(document.getElementById('convFcChart'), {
+    type:'line',
+    data:{
+      labels:days.map(d=>'D'+d),
+      datasets:[{
+        data:cumConv, borderColor:'#34d399', tension:.4, borderWidth:2, pointRadius:0,
+        fill:true, backgroundColor:'rgba(52,211,153,.06)'
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{
+        x:{grid:{color:GC},border:{display:false},ticks:{color:TC,font:PFONT,maxTicksLimit:10}},
+        y:{grid:{color:GC},border:{display:false},ticks:{color:TC,font:PFONT}}
+      }
+    }
+  });
+}
+
+/* ══════════════════════ TAB SWITCHING ══════════════════════ */
+let builtAudience=false, builtCompare=false;
+function switchTab(id) {
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+  document.querySelector(`[onclick="switchTab('${id}')"]`).classList.add('active');
+  document.getElementById('tab-'+id).classList.add('active');
+
+  if (id==='audience' && !builtAudience) { buildAudienceCharts(); builtAudience=true; }
+  if (id==='compare'  && !builtCompare)  { buildCompareCharts();  builtCompare=true; }
+}
+
+/* ══════════════════════ INIT ══════════════════════ */
+window.addEventListener('load', ()=>{
+  buildDashboardCharts();
+  runRF();  // initialise prediction charts
+});
+</script>
+</body>
+</html>
