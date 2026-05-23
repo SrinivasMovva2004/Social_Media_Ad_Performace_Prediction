@@ -54,35 +54,25 @@ Built with **Django** as the backend, a **Random Forest regressor** trained on 8
 - All charts update reactively as parameters change
 
 ---
+## 📈 Overview Dashboard
+KPI cards · multi-platform CTR trends · conversion funnel · ROAS analysis
 
-## 🎬 Demo
+![Overview Dashboard](screenshots/overview.png)
 
-### 📈 Overview Dashboard
-*KPI cards · multi-platform CTR trends · conversion funnel · ROAS analysis*
+## 👥 Audience Insights
+Demographics · device breakdown · posting hour analysis · CTR heatmap
 
-![Overview Dashboard](screenshots/overview.jpg)
+![Audience Insights](screenshots/audience.png)
 
----
+## 🔀 Platform Comparison
+5-platform radar chart · efficiency indices · cost-per-conversion analysis
 
-### 👥 Audience Insights
-*Demographics · device breakdown · posting hour analysis · CTR heatmap*
+![Platform Comparison](screenshots/comparison.png)
 
-![Audience Insights](screenshots/audience.jpg)
+## 🤖 ML Forecasting
+Real-time predictions with adjustable parameters and 30-day forecast
 
----
-
-### 🔀 Platform Comparison
-*5-platform radar chart · efficiency indices · cost-per-conversion analysis*
-
-![Platform Comparison](screenshots/compare.jpg)
-
----
-
-### 🤖 ML Forecasting
-*Real-time predictions with adjustable parameters and 30-day forecast*
-
-![ML Forecasting](screenshots/forecast.jpg)
-
+![ML Forecasting](screenshots/forecast.png)
 ---
 
 ### 📋 Feature Summary
